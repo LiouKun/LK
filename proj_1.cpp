@@ -1,4 +1,4 @@
-// ¸T¤î¥Îtab 
+// ç¦æ­¢ç”¨tab 
 # include <iostream>
 # include <string>
 # include <sstream>
@@ -8,31 +8,30 @@
 using namespace std;
 
 void Get_token( string command_line, vector<string>& token_group ) ;
-// ¤Á¥Xtoken¡A¦^¶Çvector<string>¡A¸Ì­±©ñªº¬Otoken 
+// åˆ‡å‡ºtokenï¼Œå›å‚³vector<string>ï¼Œè£¡é¢æ”¾çš„æ˜¯token 
 int Token_type( string token ) ;
-// §PÂ_tokenÃş«¬¡A¨Ã±N¦P¸q¦r¦p #t t ©Î nil () #f ³B²z§ï¦¨²Î¤@¦r 
+// åˆ¤æ–·tokené¡å‹ï¼Œä¸¦å°‡åŒç¾©å­—å¦‚ #t t æˆ– nil () #f è™•ç†æ”¹æˆçµ±ä¸€å­— 
                              
 int main() {
   char ch ;
-  int lp = 0, rp = 0 ; // ¥ª¬A¸¹ªº¼Æ¶q ¥k¬A¸¹ªº¼Æ¶q 
-  string command_line ; // ©R¥O¥»¤H 
-  vector<string> token_group ; // ³Q¤À«Íªº©R¥O = token 
+  int lp = 0, rp = 0 ; // å·¦æ‹¬è™Ÿçš„æ•¸é‡ å³æ‹¬è™Ÿçš„æ•¸é‡ 
+  string command_line ; // å‘½ä»¤æœ¬äºº 
+  vector<string> token_group ; // è¢«åˆ†å±çš„å‘½ä»¤ = token 
   ch = cin.get() ;
   while ( !cin.eof() ) {
-    if ( ch != '\n' ) command_line = command_line + ch ; // ¤£§â´«¦æ¦s¤Jcommand_line 
-    // ³B²z¬A¸¹ ¶}©l! 
+    if ( ch != '\n' ) command_line = command_line + ch ; // ä¸æŠŠæ›è¡Œå­˜å…¥command_line 
+    // è™•ç†æ‹¬è™Ÿ é–‹å§‹! 
     if ( ch == '(' ) {
       lp++ ; 
-      ch = cin.get() ; // ­n¥Îcin.get¤~¯à±µ¨ü¨ì(´«¦æ)(ªÅ¥Õ) 
+      ch = cin.get() ; // è¦ç”¨cin.getæ‰èƒ½æ¥å—åˆ°(æ›è¡Œ)(ç©ºç™½) 
       command_line = command_line + ch ;
-      if ( ch == ')' ) lp-- ; // >>()<<  ¥ª¥k¬A¸¹¬Û³s¥Nªí: nil  
-      if ( ch == '(' ) lp++ ; // >>((<<  ³o­Ó¦r¤¸¤]¬O¥ª¬A¸¹ ·íµM¤]­nºâ¶i¨Ó 
+      if ( ch == ')' ) lp-- ; // >>()<<  å·¦å³æ‹¬è™Ÿç›¸é€£ä»£è¡¨: nil  
+      if ( ch == '(' ) lp++ ; // >>((<<  é€™å€‹å­—å…ƒä¹Ÿæ˜¯å·¦æ‹¬è™Ÿ ç•¶ç„¶ä¹Ÿè¦ç®—é€²ä¾† 
     } // if()
     else if ( ch == ')' ) rp++ ;
-    // ³B²z¬A¸¹ µ²§ô 
+    // è™•ç†æ‹¬è™Ÿ çµæŸ 
     
     if ( ( lp == rp ) && lp != 0  ) {
-      cout << lp << rp << "\n" ;
       lp = 0 ;
       rp = 0 ;
       cout << "into Get_token \n" ;
@@ -56,13 +55,13 @@ int main() {
 } // main()
 
 
-// ¹J¨ì" ¡A ´N§â«á­±µø¬°¦r¦ê(¤£­n¸õªÅ¥Õ)¡A¦ı¦pªG¦b¸I¨ì¤U­Ó"¦r¤¸«e¡A´N¹J¤W\n¤F¡A«h¦L¥Xerror
-// ¬A¸¹­n¦¬¨ì©Ò¦³¹ïºÙªº¬A¸¹¤~¯àµ²§ô¡A¦Ó¤£¬O¹J¨ì´«¦æ´Nµ²§ô
+// é‡åˆ°" ï¼Œ å°±æŠŠå¾Œé¢è¦–ç‚ºå­—ä¸²(ä¸è¦è·³ç©ºç™½)ï¼Œä½†å¦‚æœåœ¨ç¢°åˆ°ä¸‹å€‹"å­—å…ƒå‰ï¼Œå°±é‡ä¸Š\näº†ï¼Œå‰‡å°å‡ºerror
+// æ‹¬è™Ÿè¦æ”¶åˆ°æ‰€æœ‰å°ç¨±çš„æ‹¬è™Ÿæ‰èƒ½çµæŸï¼Œè€Œä¸æ˜¯é‡åˆ°æ›è¡Œå°±çµæŸ
 
-// ¥Îstr.at¨Ó¬İ¦r¦ê¸Ì­±ªºªF¦è¡Afor( int i = 0 ; i < str.length ; i++ )
+// ç”¨str.atä¾†çœ‹å­—ä¸²è£¡é¢çš„æ±è¥¿ï¼Œfor( int i = 0 ; i < str.length ; i++ )
 
-//  ' ­n¿é¥X¦¨ quote
+//  ' è¦è¼¸å‡ºæˆ quote
 
-// ¶i¤Jget_token()ªº¨âºØcase 
-// case1 : Åª¨ì´«¦æ
-// case2 : ·ílp rp ¹ïºÙ¡A¥B¡Alp rp¤£¬O³s¦b¤@°_«h¶i¤Jget_token()
+// é€²å…¥get_token()çš„å…©ç¨®case 
+// case1 : è®€åˆ°æ›è¡Œ
+// case2 : ç•¶lp rp å°ç¨±ï¼Œä¸”ï¼Œlp rpä¸æ˜¯é€£åœ¨ä¸€èµ·å‰‡é€²å…¥get_token()
