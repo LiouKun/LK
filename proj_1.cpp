@@ -6,6 +6,7 @@
 # include <stdlib.h>
 # include <iomanip>
 using namespace std;
+//////
 
 void Get_token( string command_line, vector<string>& token_group ) ;
 // 切出token，回傳vector<string>，裡面放的是token 
