@@ -7,14 +7,21 @@
 using namespace std;
 string Get_token() ;
 int Token_type( string&str ) ;
-bool S_expression( string str ) ;
+bool S_expression( string&str ) ;
+
+struct node {   
+  string atom ;           
+	node *left;      // Link to left child
+	node *right;     // Link to right child
+};
 char separator = '\n' ;
- 
 int main() {
-  string token ;
+  string token = " " ;
   while ( !cin.eof() ) {
-    token = Get_token();
-    cout << Token_type(Get_token()) << "\n" ;
+    token = Get_token() ;
+    while( token == "" ) token = Get_token() ;
+    if ( S_expression( token ) )  cout << "true\n" ;
+    else cout << "error\n" ;
   } // while()
 } // main()
 
@@ -69,7 +76,7 @@ string Get_token() { // ¦^¶Ç¤@­Ótoken¦^¥h
   else if ( ch == ';' ) {
     separator = ' ' ;
     ch = cin.get() ;
-    while ( ch != '\n' ) {
+    while ( ch != '\n' && !cin.eof() ) {
       ch = cin.get() ;
     }
   } // if()
@@ -102,6 +109,9 @@ int Token_type ( string&str ) {
   }
   else if ( str == "(" ) {
     separator = cin.get() ;
+    while ( isspace(separator) ) {
+      separator = cin.get() ;
+    }
     if ( separator == ')' ) {
       str == "nil" ;
       separator = ' ' ;
@@ -135,11 +145,48 @@ int Token_type ( string&str ) {
 bool S_expression( string&str ) {
   string token ;
   int token_type = Token_type(str) ;
-  if ( token_type == 3 || token_type == 4 || token_type == 5 || token_type == 6 || token_type == 7 || token_type == 8 || token_type == 10  ) {
+  if ( token_type == 3 || token_type == 4 || token_type == 6 || token_type == 7 || token_type == 8 || token_type == 10  ) {
     return true ;
-  } 
-  else if ( token_type == 1 ) {
-    token = Get_token();
-    
   }
-}
+  else if ( token_type == 1 ) { // LP
+    token = Get_token() ;
+    if ( !S_expression(token) ) {
+      return false ;
+    }
+    else {
+      token = Get_token() ;
+      while ( token != "." && token != ")"  )  {
+        if ( !S_expression(token) ) return false ;
+        token = Get_token() ;
+      }
+      
+      if ( token == ")" ) {
+        return true ;
+      }
+      else if ( token == "." ) {
+        token = Get_token() ;
+        if ( S_expression(token) ) {
+          token = Get_token() ;
+          if ( token != ")" ) {
+            return false ;
+          }
+          else {
+            return true ;
+          }
+        }
+        else {
+          return false ;
+        }
+      }
+    }
+
+  }
+  else if ( token_type == 9 ) { // quote 
+    token = Get_token() ;
+    if ( !S_expression(token) ) return false ;
+    else return true ;
+  }
+  else { // DOT RP 
+    return false ;
+  }
+} // S_expression()
