@@ -8,6 +8,7 @@ using namespace std;
 string Get_token() ;
 int Token_type( string&str ) ;
 bool S_expression( string&str ) ;
+void Cross_out() ;
 
 struct node {   
   string atom ;           
@@ -25,15 +26,15 @@ int main() {
   } // while()
 } // main()
 
-string Get_token() { // ¦^¶Ç¤@­Ótoken¦^¥h 
+string Get_token() { // 回傳一個token回去 
   string token ;
   char ch ;
   ch = separator ;
-  while ( isspace(ch) && !cin.eof() ) { // ¸õ¹L©Ò¦³white-spaces¡Bª½¨ì¸I¨ì¡u«Dwhite-space¡v(©ÎEND-OF-FILE)¬°¤î
+  while ( isspace(ch) && !cin.eof() ) { // 跳過所有white-spaces、直到碰到「非white-space」(或END-OF-FILE)為止
     ch = cin.get() ;
   } // while()
   while ( !isspace(ch) && ch != '(' && ch != ')' && ch != '\'' && ch != '"' && ch != ';' ) {
-  // ±q¨º­Ó¡u«Dwhite-space¡v¶}©l "Ä~ÄòÅª¤J"¡Bª½¨ì¸I¨ì¡useparator-¦r¤¸¡v¬°¤î
+  // 從那個「非white-space」開始 "繼續讀入"、直到碰到「separator-字元」為止
     token = token + ch ;
     ch = cin.get() ;
   } // while()
@@ -63,12 +64,8 @@ string Get_token() { // ¦^¶Ç¤@­Ótoken¦^¥h
       }
       else  token = token + ch ;
       ch = cin.get() ;
-      if ( ch == '\n' ) { // ¦r¦ê³B²zªºerror¦b³o¸Ì´N¥i¥H³B²z
+      if ( ch == '\n' ) { // 字串處理的error在這裡就可以處理
         cout << "error\n" ;
-        ch = cin.get() ;
-        while ( ch != '\n' ) {
-          ch = cin.get() ;
-        }
       }
       if ( ch == '"' ) token = token + ch ;
     } // while() 
@@ -81,7 +78,15 @@ string Get_token() { // ¦^¶Ç¤@­Ótoken¦^¥h
     }
   } // if()
 } // Get_token() 
+void Cross_out() {
+    char ch ;
+    ch = cin.get() ;
+    while ( ch != '\n' ) {
+      cout << "X" ;
+      ch = cin.get() ;
+    } 
 
+}
 int Token_type ( string&str ) {   
   /*
   1 LEFT-PAREN       // '('
@@ -141,7 +146,6 @@ int Token_type ( string&str ) {
   else return 10 ;
   
 }
-
 bool S_expression( string&str ) {
   string token ;
   int token_type = Token_type(str) ;
@@ -168,6 +172,7 @@ bool S_expression( string&str ) {
         if ( S_expression(token) ) {
           token = Get_token() ;
           if ( token != ")" ) {
+            Cross_out() ;
             return false ;
           }
           else {
@@ -187,6 +192,7 @@ bool S_expression( string&str ) {
     else return true ;
   }
   else { // DOT RP 
+    Cross_out() ;
     return false ;
   }
 } // S_expression()
