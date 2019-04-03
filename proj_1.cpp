@@ -7,7 +7,7 @@
 using namespace std;
 string Get_token( bool& ) ;
 int Token_type( string&str ) ;
-bool S_expression( string&str, vector<string>&all_tokens ) ; // paresr
+bool S_expression( string&str, vector<string>&all_tokens, int&error_type, string&error_token ) ; // parser
 void Cross_out() ; // ¥X¿ù«á ®ø¤Æ±¼«á­±ªº¿é¤J 
 void GetChar( char&ch ) ; 
 void PrettyPrint( vector<string> vec, int&i, int space ) ;
@@ -18,149 +18,150 @@ struct node {
 	node *right;     // Link to right child   
 };
 char separator = ' ' ;  // ¦³«Ý§ï¶iªº³]­p ¥i¥H§ï¥Îcin.peek 
-int error_line = 1, error_column = 0 ;
-bool enter = false ;
+int line = 1, column = 0 ;
+int pre_line = 1, pre_column = 1 ;
 bool command_end = false ;
-int count_mode = 0 ;
 int main() {
+  int gTestNum ;
+  cin >> gTestNum ;
+  cout << "Welcome to OurScheme!\n"
   vector<string> all_tokens ;
-  bool str_error ; // ¦r¦ê¿ù»~¡A¦b¦r¦ê¤º´«¦æªº¿ù»~ 
-  string token = " " ; 
+  bool str_error = false ; // ¦r¦ê¿ù»~¡A¦b¦r¦ê¤º´«¦æªº¿ù»~ 
+  string token = " " ;
+  int error_type ;
+  string error_token ;
   while ( !cin.eof() ) {
     token = Get_token( str_error ) ;
     while( token == "" ) token = Get_token( str_error ) ; // ¤@©w­nget¨ì¤@­Ótoken
-    command_end = false ;
-    if ( !str_error && S_expression( token, all_tokens ) ) { 
+    if ( !str_error && S_expression( token, all_tokens, error_type, error_token ) ) { 
       cout << "true\n" ;  // ¨S¦³¥ô¦ó¿ù»~
       int i = 0, space = 0 ;
       Fix_all_tokens( all_tokens ) ;
       PrettyPrint( all_tokens, i, space ) ;
+      cout << "\n" ;
     } // if()
     else {
-      cout << "error  " << "LINE: " << error_line << "COLUMN: "  << error_column << "\n" ;
+      if ( error_type == 1 ) {
+        cout << "ERROR (unexpected token) : atom or '(' expected when token at Line " << line ;
+        cout << " Column " << column << " is >>" << error_token << "<<\n" ;
+      }
+      else if ( error_type == 2 ) {
+        cout << "ERROR (unexpected token) : ')' expected when token at Line " << line << " Column "<< column ;
+        cout << " is >>" << error_token << "<<\n" ;
+      }
+      else if ( error_type == 3 || str_error ) {
+        cout << "ERROR (no closing quote) : END-OF-LINE encountered at Line " << line ;
+        cout <<  " Column "<< column+1 << "\n" ;
+      }
+      else { // eof
+      }
     } // else()
-    error_line = 1 ;
-    error_column = 0 ;
+    line = 0 ;
+    column = 0 ;
     all_tokens.clear() ;
     command_end = true ;
-    if ( count_mode == 1 ) {
-      if ( cin.peek() == '\n' ) char a = cin.get() ;
-    }
-    count_mode = 0 ;
   } // while()
 } // main()
+
 void GetChar( char&ch ) {
   ch = cin.get() ;
-  if ( count_mode == 1 ) { // ¥ª¬A¸¹¶}ÀYªºªºcase ·|¥H¥k¬A¸¹µ²§ô 
-    if ( ch == '\n' && !command_end ) {
-      error_line++ ;
-      error_column = 0 ;
-    }
-    else if ( ch == '\n' && command_end ) {
-      error_line = 1 ;
-      error_column = 0 ;
-    }
-    else {
-      error_column++ ;
-    }
+  if ( ch == '\n' ) {
+    line++ ;
+    column = 0 ;
   }
-  else if ( count_mode == 2 ) { // «D¥ª¬A¸¹¶}ÀYªºcase ·|¥H´«¦æ¦r¤¸µ²§ô 
-    if ( ch == '\n' ) enter = true ; // ²{¦b¹J¨ì´«¦æ¤F! ¦ý¼Æ¦r¥ý¤£°Ê¡A¤U¦¸getchar¦A°Ê 
-    else if ( enter == true ) { // ­è­èªºchar¬O´«¦æ¡A³oÃä¸Ó°Ê¼Æ¦r¤F 
-      enter = false ;
-      error_line = 1 ; 
-      error_column = 0 ;
-      if ( cin.peek() == '\n' ) { // ³sÄò¨â­Ó´«¦æ! (2.0) (3,0) (4,0)... 
-        ch = cin.get() ;
-        while ( ch == '\n' ) {
-          error_line++ ;
-          ch = cin.get() ;
-        }
-      }
-    }
-    else {
-      error_column++ ;
-    }
+  else {
+    if ( !isspace(ch) && line == 0 ) line = 1 ;
+    column++ ;
   }
-  else if ( count_mode == 0 ) {
-    if ( ch == '\n' ) {
-      error_line++ ;
-    }
-    else if ( ch == '(' ) {
-      count_mode = 1 ;
-      error_column++ ;
-    }
-    else {
-      count_mode = 2 ;
-      error_column++ ;
-    }
-  }
-  // cout << "x: " << error_line << " y: " << error_column << "\n" ;
 } // GetChar()
-string Get_token( bool&str_error ) { // ¦^¶Ç¤@­Ótoken¦^¥h 
-  str_error = false ; // ¦r¦ê¿ù»~ªì©l¬°false 
+string Get_token(bool&str_error) { 
+  str_error = false ;
   string token ;
   char ch ;
-  ch = separator ; // ±q¨º­Óseparator¦r¤¸¶}©l§PÂ_ 
-  while ( isspace(ch) && !cin.eof() ) { 
-  // ¸õ¹L©Ò¦³white-spaces¡Bª½¨ì¸I¨ì¡u«Dwhite-space¡v(©ÎEND-OF-FILE)¬°¤î
+  ch = cin.peek() ;
+  while ( isspace(ch) && !cin.eof() ) { //get all white-space
     GetChar(ch) ;
+    ch = cin.peek() ; // if this is not white space, don't get this ch ,and end loop
   } // while()
+  // start to get token!!
   while ( !isspace(ch) && ch != '(' && ch != ')' && ch != '\'' && ch != '"' && ch != ';' ) {
-  // ±q¨º­Ó¡u«Dwhite-space¡v¶}©l "Ä~ÄòÅª¤J"¡Bª½¨ì¸I¨ì¡useparator-¦r¤¸¡v¬°¤î
-    token = token + ch ;
     GetChar(ch) ;
+    token = token + ch ;
+    ch = cin.peek() ;
   } // while()
-  if ( token != "" ) { 
-    separator = ch ;
-    return token ;
-  } // if() 
   
-  // ¥H¤U¶}©l³B²z¤ÀÂ÷¦r¤¸ 
-  if ( ch == '(' || ch == ')' || ch == '\'' ) {
-    // ¸I¨ì³o¤T­Ó Â²³æ ª½±µreturn¦^¥h 
-    separator = ' ' ;
-    token = token + ch ;
+  if ( token != "" ) { // cut down by 'isspace', and token is done, bye
     return token ;
   } // if() 
-  else if ( ch == '"' ) { // ¦r¦êªº³B²z 
-    separator = ' ' ;
+  else { // time to cut sepatator char, token is empty
+    if ( cin.peek() != ';' ) GetChar(ch) ; // get token is end
+    else {
+      ch = cin.peek() ;
+      while ( ch != '\n' ) {
+        ch = cin.get() ;
+        ch = cin.peek() ;
+      }
+      string str = Get_token(str_error) ;
+      return str ;
+    } // else if()
+  } // else() 
+  
+  // start to handle......
+  // !!!separator char!!! cut down by 'rule'
+  if ( ch == '(' || ch == ')' || ch == '\'' ) { // LP RP QUOTE
     token = token + ch ;
-    GetChar(ch) ;
-    while ( ch != '"' ) {
-      if ( ch == '\n' ) { // ¦r¦ê³B²zªºerror¦b³o¸Ì´N¥i¥H³B²z
-        str_error = true ; // ¦r¦êerror
-        token = "error" ;
-        return token ;
-      } // if()
-      else if ( ch == '\\' ) { // ¸I¨ì'\' -> escape¦r¤¸³B²z 
-        char back_slash = ch ; 
-        GetChar(ch) ;
-        if ( ch == 't' ) token = token + '\t' ;
-        else if ( ch == '\\' ) token = token + '\\' ;
-        else if ( ch == 'n' ) token = token + '\n' ;
-        else if ( ch == '"' ) token = token + '\"' ;
+    return token ; // bye
+  } // if() 
+  else if ( ch == '"' ) { // this time, 'first double quote' has been cut down
+    token = token + ch ;
+    ch = cin.peek() ; 
+    while ( ch != '"' && ch != '\n' ) {
+      GetChar(ch) ;
+      if ( ch == '\\' ) {
+        char back_slash = ch ;
+        ch = cin.peek() ; // peek next char
+        if ( ch == 't' ) {
+          GetChar(ch) ;
+          token = token + '\t' ;
+        } // if()
+        else if ( ch == '\\' ) {
+          GetChar(ch) ;
+          token = token + '\\' ;
+        } // else if
+        else if ( ch == 'n' ) {
+          GetChar(ch) ;
+          token = token + '\n' ;
+        } // else if
+        else if ( ch == '"' ) {
+          GetChar(ch) ;
+          token = token + '\"' ;
+        } // else if
         else token = token + back_slash ;
-      } // else if()
+      }
       else  token = token + ch ;
-      GetChar(ch) ;
-      if ( ch == '"' ) token = token + ch ;
+      
+      ch = cin.peek() ;
+      if ( ch == '\n' ) {
+        str_error = true ;
+        return token ;
+      }
+      if ( ch == '"' ) {
+        GetChar(ch) ;
+        token = token + ch ; // second double quote, and string token is done
+        return token ;
+      }
     } // while() 
-  } // else if()
-  else if ( ch == ';' ) { 
-    separator = ' ' ;
-    GetChar(ch) ;
-    while ( ch != '\n' && !cin.eof() ) { // Åª±¼µù¸Ñ«áªº©Ò¦³ªF¦è 
-      GetChar(ch) ;
-    } // while()
-  } // else if()
+    if ( ch == '\n' ) {
+       str_error = true ;
+       return token ;
+    }
+  } // if()
 } // Get_token() 
 void Cross_out() { // ¹º±¼¿ù»~«áªº©Ò¦³ªF¦è 
-    char ch = separator ;
-    separator = ' ' ; 
+    char ch = cin.peek() ;
     while ( ch != '\n' ) {
       ch = cin.get() ;
-      cout << "X" ;
+      ch = cin.peek() ;
     } // while()
 } // Cross_out()
 int Token_type ( string&str ) {   // §PÂ_type ¶¶«K³B²znil #t () 
@@ -187,13 +188,14 @@ int Token_type ( string&str ) {   // §PÂ_type ¶¶«K³B²znil #t ()
     return 8 ;
   } // else if()
   else if ( str == "(" ) {
-    GetChar(separator) ;
-    while ( isspace(separator) ) {
-      GetChar(separator) ;
+    char ch = cin.peek() ;
+    while ( isspace(ch) ) {
+      GetChar(ch) ;
+      ch = cin.peek() ;
     } // while()
-    if ( separator == ')' ) {
+    if ( ch == ')' ) {
+      GetChar(ch) ;
       str = "nil" ;
-      separator = ' ' ;
       return 7 ;
     } // if()
     else return 1 ;
@@ -223,9 +225,11 @@ int Token_type ( string&str ) {   // §PÂ_type ¶¶«K³B²znil #t ()
   } // if()
   else return 10 ;
 } // Token_type()
-bool S_expression( string&str, vector<string>&all_tokens ) { // §PÂ_¤åªk 
+bool S_expression( string&str, vector<string>&all_tokens, int&error_type, string&error_token ) { // §PÂ_¤åªk 
   string token ; 
-  bool str_error ; //  ¦r¦êerror 
+  bool str_error ; //  ¦r¦êerror
+  error_type = 0 ;
+  error_token = str ;
   int token_type = Token_type(str) ; 
   if ( token_type == 3 || token_type == 4 || token_type == 6 || token_type == 7 || token_type == 8 || token_type == 10  ) {
     all_tokens.push_back(str) ;
@@ -234,17 +238,18 @@ bool S_expression( string&str, vector<string>&all_tokens ) { // §PÂ_¤åªk
   else if ( token_type == 1 ) { // LP
     all_tokens.push_back(str) ;
     token = Get_token(str_error) ;
-    while( token == "" ) token = Get_token( str_error ) ; // Åª¨ì¦³ªF¦è¬°¤î 
-    if ( str_error || !S_expression(token, all_tokens) ) {
-      return false ;
-    } // if()
+    while( token == "" ) token = Get_token( str_error ) ; // Åª¨ì¦³ªF¦è¬°¤î
+    if ( str_error ) error_type = 3 ;
+    if ( str_error || !S_expression(token, all_tokens, error_type, error_token ) ) return false ;
     else {
       token = Get_token(str_error) ;
       while( token == "" ) token = Get_token( str_error ) ;
+      if ( str_error ) error_type = 3 ;
       while ( token != "." && token != ")"  )  {
-        if ( str_error || !S_expression(token, all_tokens) ) return false ;
+        if ( str_error || !S_expression( token, all_tokens, error_type, error_token ) ) return false ;
         token = Get_token(str_error) ;
         while( token == "" ) token = Get_token( str_error ) ;
+        if ( str_error ) error_type = 3 ;
       }
       
       if ( token == ")" ) {
@@ -255,10 +260,12 @@ bool S_expression( string&str, vector<string>&all_tokens ) { // §PÂ_¤åªk
         all_tokens.push_back(token) ;
         token = Get_token(str_error) ;
         while( token == "" ) token = Get_token( str_error ) ;
-        if ( !str_error && S_expression(token, all_tokens) ) {
+        if ( str_error ) error_type = 3 ;
+        if ( !str_error && S_expression(token, all_tokens, error_type, error_token ) ) {
           token = Get_token(str_error) ;
           while( token == "" ) token = Get_token( str_error ) ;
           if ( token != ")" ) {
+            error_type = 2 ;
             Cross_out() ;
             return false ;
           } // if()
@@ -268,6 +275,7 @@ bool S_expression( string&str, vector<string>&all_tokens ) { // §PÂ_¤åªk
           }
         }  // if()
         else {
+          error_type = 1 ;
           return false ;
         } // else
       } // else if
@@ -279,13 +287,15 @@ bool S_expression( string&str, vector<string>&all_tokens ) { // §PÂ_¤åªk
     all_tokens.push_back("quote") ; 
     token = Get_token(str_error) ;
     while( token == "" ) token = Get_token( str_error ) ;
-    if ( str_error || !S_expression(token, all_tokens) ) return false ;
+    if ( str_error ) error_type = 3 ;
+    if ( str_error || !S_expression(token, all_tokens, error_type, error_token ) ) return false ;
     else {
       all_tokens.push_back(")") ;
       return true ;
     } // else
   } // else if()
-  else { // DOT RP 
+  else { // DOT RP
+    error_type = 1 ;
     Cross_out() ;
     return false ;
   } // else
